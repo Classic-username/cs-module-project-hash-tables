@@ -23,6 +23,9 @@ class HashTable:
     def __init__(self, capacity):
         self.capacity = capacity
         self.storage = [None] * capacity
+        self.size = 0
+        self.max_load = 0.7
+        self.min_load = 0.2
 
 
     def get_num_slots(self):
@@ -36,6 +39,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        return self.capacity
 
 
     def get_load_factor(self):
@@ -45,6 +49,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        return self.size / self.capacity if self.size > 0 else 0
 
 
     def fnv1(self, key):
@@ -93,6 +98,8 @@ class HashTable:
 
         index = self.hash_index(key)
 
+        self.size += 1
+
         #item does not exist
         if self.storage[index] is None:
             self.storage[index] = HashTableEntry(key, value)
@@ -122,6 +129,7 @@ class HashTable:
         index = self.hash_index(key)
 
         if self.storage[index]:
+            self.size -= 1
             if self.storage[index].key == key:
                 if self.storage[index].next is not None:
                     self.storage[index] = self.storage[index].next
@@ -171,8 +179,31 @@ class HashTable:
         """
         # Your code here
 
-        
+        if self.get_load_factor() > self.max_load:
+            old_storage = self.storage.copy()
+            self.capacity = new_capacity or self.capacity * 2
+            self.storage = [None] * self.capacity
 
+            for item in old_storage:
+                while item:
+                    self.put(item.key, item.value)
+                    item = item.next
+            return
+
+        elif self.get_load_factor() < self.min_load and self.capacity > 8:
+            old_storage = self.storage.copy()
+            self.capacity = new_capacity or self.capacity / 2
+            self.storage = [None] * self.capacity
+
+            for item in old_storage:
+                while item:
+                    self.put(item.key, item.value)
+                    item = item.next
+            return
+
+        else:
+            return
+        
 
 
 if __name__ == "__main__":
@@ -209,3 +240,5 @@ if __name__ == "__main__":
         print(ht.get(f"line_{i}"))
 
     print("")
+
+
